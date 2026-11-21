@@ -1,0 +1,87 @@
+DNX Styler v3.11 - Themes fuer OpenWebRX (reines CSS-Overlay)
+=============================================================
+Stand: 16.10.2026
+
+Was ist das?
+  Ein Fenster "DNX Styler" im Empfaenger-Panel. Vorlagen waehlen, Farben,
+  S-Meter-Linie (Standard: LED-Kette gruen-gelb-orange-rot), Pillen-Effekte
+  fuer FM/WFM/AM/DAB/DIG - alles sofort sichtbar.
+  Enthalten seit v3.6: Wasserfall- und Spektrum-Paletten (8 DNX-Paletten, die
+  Original-Themes und alle 55 Paletten der MultiSDR-Anzeige 188), beide einzeln
+  an/aus (auch als Schalter im Empfaenger-Panel), "Standard fuer alle" und
+  Scrollbalken im Themestil.
+
+Neu in v3.11:
+  - ROTE LINIEN BLEIBEN SICHTBAR: Beim Scrollen oder Rad ueber dem Wasserfall
+    zeigt OpenWebRX die Meldung "FREQUENZ GEAENDERT" gross in der Bildmitte.
+    Dieses Fenster lag bisher ueber der roten Ziehlinie - die Linie war dann
+    mitten im Bild weg. Jetzt laeuft die rote Linie ueber dieser Meldung
+    weiter; die Meldung selbst bleibt voll bedienbar (Klick schliesst sie).
+    Das gilt fuer beide roten Linien und nur waehrend sie verdeckt waeren -
+    sonst sieht alles aus wie vorher.
+
+Neu in v3.10:
+  - RUECKSCHAU-SPANNE FREI EINSTELLBAR: im Styler-Fenster unter
+    "Rueckschau: max. Minuten" - Regler von 0 (aus) bis 720 Minuten
+    (12 Stunden), Schritt 5 Minuten. Daneben stehen Wert (Minuten und
+    Stunden) und der geschaetzte Speicherbedarf, darunter Schnellwahl-
+    Knoepfe: aus / 5 min / 15 min / 30 min / 1 h / 2 h / 4 h / 8 h / 12 h.
+    So weit laesst sich die Rueckblick-Leiste hoechstens zurueckziehen.
+    Anhaltspunkt Speicher (Ringpuffer): 30 min ca. 8 MB, 2 h ca. 16 MB,
+    4 h ca. 21 MB, 12 h ca. 40 MB.
+
+Neu in v3.9:
+  - FENSTEREcken laufen ohne Verzoegerung mit: Wird der Empfaenger an der roten
+    Kopfleiste gezogen (oder an einer Ecke selbst), sitzen die Eckmarkierungen
+    im selben Bild am Fenster - vorher sprangen sie im halben Sekundentakt hinterher.
+  - ROTE LINIEN, ZEITACHSE und RUECKBLICK-LEISTE folgen sofort: beim Ziehen der
+    roten Ziehlinien, beim Mausrad, beim Scrollen, beim Zoomen des Wasserfalls,
+    beim Aendern der Fenstergroesse und beim Verschieben aller Fenster.
+  - Der Styler arbeitet dabei nur, solange sich wirklich etwas bewegt, und hoert
+    danach von selbst auf (kein Dauerlauf, keine Last im Ruhezustand).
+
+Neu in v3.7:
+  - ZEITACHSE AM WASSERFALL: links oder rechts ein Zeitband, das mit dem
+    Wasserfall mitlaeuft - feine Sekundenstriche und Zeitbeschriftung im
+    einstellbaren Abstand (1-60 s, Schrift 10-18 px). Bleibt beim Zoomen des
+    Wasserfalls immer im Vordergrund.
+  - RUECKBLICK: senkrechte Leiste am Zeitband. Ziehen holt die letzten
+    Minuten zurueck (Zeit und Stufe stehen im Schild ueber dem Bild),
+    Doppelklick = wieder live. Aufgenommen wird nur, was ohnehin angezeigt
+    wurde - geschaetzter Speicher: 30 min ca. 8 MB, 180 min ca. 37 MB;
+    0 = Aufnahme aus.
+  - PLAY-KNOPF statt Doppelklick: im Rueckblick leuchtet oben ein "▶ live"-Knopf
+    (gruen) - ein Klick und der Wasserfall laeuft wieder live. Doppelklick geht
+    weiterhin.
+  - RUECKBLICK-LEISTE GANZ AUSSEN: rechts am rechten Bildrand, links am linken -
+    das Zeitband sitzt direkt daneben.
+  - STATUS-LEISTE UNTEN LINKS (Pillen): verschiebbar (rechts/links bis zum
+    Rand, hoch/runter bis zum Rand), Pillen in den eigenen Theme-Farben
+    (Panel-/Text-/Akzentfarbe) oder ausblenden.
+  - Fensterschrift groesser und weiss mit Glanz.
+  - Alle neuen Werte gehen mit in "Standard fuer alle" (Betreiber-Standard).
+
+Wichtig: Der Styler aendert KEINE OpenWebRX-Core-Dateien. Er haengt sich als
+eigenes Plugin in die Oberflaeche (CSS-Overlay) und laesst sich jederzeit
+wieder entfernen (Reset-Knopf stellt das Original her).
+
+Installation (auf dem eigenen OpenWebRX)
+  1. Backup:   cp /opt/owrx-docker/plugins/receiver/init.js /opt/owrx-docker/plugins/receiver/init.js.bak
+  2. Anhaengen: cat dnx_styler.js >> /opt/owrx-docker/plugins/receiver/init.js
+  3. OpenWebRX/Container neu starten, damit das Skript neu geladen wird.
+  4. Im Browser Strg+Shift+R (Cache leeren).
+  5. Im Empfaenger-Panel erscheint der Knopf "DNX Styler".
+
+Teilen-Dienst (optional, fuer "Standard fuer alle" und die Liste der
+gespeicherten Einstellungen auf der eigenen Seite)
+  python3 <USER_HOME>/dnx-styler-share/styler_share.py --daemon
+  Die Adresse steht im Styler (SHARE_PORT ":8098").
+
+Inhalt dieses Pakets
+  dnx_styler.js     - das Plugin (an init.js anhaengen)
+  styler_share.py   - der Teilen-Dienst (optional, Port 8098)
+  ANLEITUNG.txt     - diese Datei
+  SHA256SUMS.txt    - Pruefsummen
+
+Private, inoffizielle Hobby-Anpassung. Kein offizielles OpenWebRX-/
+OpenWebRX+-Projekt. Lizenz der eigenen Anteile: MIT.
