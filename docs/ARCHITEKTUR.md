@@ -15,7 +15,7 @@ Ergänzende Detailreferenz zu [`README.md`](../README.md).
 | `dnx_styler_palettes` | Paletten-Creator | Liste selbst erstellter 3-Stopp-Verläufe (`dnxPalNeu`) |
 | `dnx_styler_pillen_fx` | Effekte | Gewählte Mode-Pillen-Animation (`15` Varianten von `keiner` bis `blitz`) |
 | `dnx_styler_tools` | Werkzeuge an / aus | Zustand der `26` `TOOL_DEFS`-Schalter (`t_*`) |
-| `dnx.spectrum.darstellung.v2` | Spektrum & Zahnrad (`⚙`) | `pal`, `hg`, `hoehe`, `hell`, `kont`, `saett`, `hue`, `weich`, `deck`, `raster`, `rasterDeck` |
+| `dnx.spectrum.darstellung.v2` | Spektrum & Zahnrad (`⚙`) | `pal`, `hg`, `hoehe`, `hell`, `kont`, `saett`, `hue`, `weich`, `deck`, `raster`, `rasterDeck`, `skala` (`pegel` / `auto`) |
 | `dnx.farben.v1` | Farben & Linien | Synchronisierter Satz für Wasserfall (`wf`), 3D-Palette (`cmap3d`), 3D-Hintergrund (`bg3d`), Linienfarbe (`linieFarbe`) & Liniendicke (`linieDicke`) |
 | `dnx_styler_top_h` | Obere rote Ziehleiste | Pixelhöhe von `.webrx-top-container` (`96–600 px`, CSS-Var `--dnx-top-h`) |
 | `dnx_styler_fft_h` | Untere rote Ziehleiste | Pixelhöhe des Spektrums (`24–400 px`, Doppelklick `50 px`, CSS-Var `--dnx-fft-h`) |

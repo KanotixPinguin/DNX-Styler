@@ -162,6 +162,16 @@ def saeubern_std(roh):
             v = f.get(k)
             if isinstance(v, str) and (KENNUNG.match(v[:40]) or FARBE.match(v[:40])):
                 ff[k] = v[:40]
+        if f.get("skala") in ("auto", "pegel"):
+            ff["skala"] = f["skala"]
+        rv = f.get("raster")
+        if rv in ("An", "Aus", 0, 1, True, False):
+            ff["raster"] = "An" if (rv == "An" or rv is True or (not isinstance(rv, bool) and rv == 1)) else "Aus"
+        rd = f.get("rasterDeck")
+        if isinstance(rd, str) and rd.strip().isdigit():
+            rd = int(rd.strip())
+        if not isinstance(rd, bool) and isinstance(rd, (int, float)) and math.isfinite(rd):
+            ff["rasterDeck"] = max(5, min(100, int(round(rd))))
         lf = f.get("linieFarbe")
         if isinstance(lf, str) and FARBE.match(lf):
             ff["linieFarbe"] = lf.lower()
@@ -200,21 +210,34 @@ def saeubern_std(roh):
     # Weitere Spektrum-Regler. Die Hoehe bleibt ausschliesslich fftH, damit
     # ein alter Spektrum-Regler die untere rote Linie nicht zurueckstellt.
     # v5: Pegel-Block (Offset / Range / Kontrast / Automatik) [DNX-PEGEL-1]
-    pegel = roh.get("pegel")
-    if isinstance(pegel, dict):
-        pg = {}
-        for k, lo, hi in (("boden", -150.0, 10.0), ("deckel", -140.0, 30.0), ("kontrast", 0.0, 100.0), ("offset", -12.0, 52.0), ("range", -60.0, 60.0)):
-            v = pegel.get(k)
+    def _saeubere_pegel_satz(satz):
+        ein = {}
+        grenzen = (("boden", -220.0, 40.0), ("deckel", -180.0, 40.0), ("kontrast", 0.0, 100.0), ("offset", -40.0, 140.0), ("range", 6.0, 160.0))
+        for k, lo, hi in grenzen:
+            v = satz.get(k)
             if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
                 continue
-            pg[k] = max(lo, min(hi, float(v)))
-        if "boden" in pg and "deckel" in pg and pg["deckel"] < pg["boden"] + 4.0:
-            pg["deckel"] = min(30.0, pg["boden"] + 4.0)
-        a = pegel.get("autoFit")
-        if isinstance(a, bool):
-            pg["autoFit"] = 1 if a else 0
-        elif isinstance(a, int) and a in (0, 1):
-            pg["autoFit"] = a
+            ein[k] = max(lo, min(hi, round(float(v), 1)))
+        if "range" in ein and "offset" in ein:
+            deckel = round(-ein["offset"], 1)
+            boden = round(max(-220.0, deckel - ein["range"]), 1)
+            ein["deckel"] = deckel
+            ein["boden"] = boden
+        elif "boden" in ein and "deckel" in ein:
+            if ein["deckel"] < ein["boden"] + 6.0:
+                ein["deckel"] = min(40.0, ein["boden"] + 6.0)
+            ein["offset"] = max(-40.0, min(140.0, round(-ein["deckel"], 1)))
+            ein["range"] = max(6.0, min(160.0, round(ein["deckel"] - ein["boden"], 1)))
+        pa = satz.get("autoFit")
+        if isinstance(pa, bool):
+            ein["autoFit"] = 1 if pa else 0
+        elif isinstance(pa, int) and pa in (0, 1):
+            ein["autoFit"] = pa
+        return ein
+
+    pegel = roh.get("pegel")
+    if isinstance(pegel, dict):
+        pg = _saeubere_pegel_satz(pegel)
         # Abweichungen je Profil: Kennung -> eigener Satz
         pr = pegel.get("profile")
         if isinstance(pr, dict):
@@ -224,19 +247,7 @@ def saeubern_std(roh):
                     continue
                 if not isinstance(satz, dict):
                     continue
-                ein = {}
-                for k, lo, hi in (("boden", -150.0, 10.0), ("deckel", -140.0, 30.0), ("kontrast", 0.0, 100.0), ("offset", -12.0, 52.0), ("range", -60.0, 60.0)):
-                    v = satz.get(k)
-                    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
-                        continue
-                    ein[k] = max(lo, min(hi, float(v)))
-                if "boden" in ein and "deckel" in ein and ein["deckel"] < ein["boden"] + 4.0:
-                    ein["deckel"] = min(30.0, ein["boden"] + 4.0)
-                aa = satz.get("autoFit")
-                if isinstance(aa, bool):
-                    ein["autoFit"] = 1 if aa else 0
-                elif isinstance(aa, int) and aa in (0, 1):
-                    ein["autoFit"] = aa
+                ein = _saeubere_pegel_satz(satz)
                 if ein:
                     pgs[name[:60]] = ein
                 if len(pgs) >= 300:
@@ -254,6 +265,16 @@ def saeubern_std(roh):
             v = spektrum.get(k)
             if not isinstance(v, bool) and isinstance(v, (int, float)) and (isinstance(v, int) or math.isfinite(v)):
                 sp[k] = max(lo, min(hi, v))
+        if spektrum.get("skala") in ("auto", "pegel"):
+            sp["skala"] = spektrum["skala"]
+        srv = spektrum.get("raster")
+        if srv in ("An", "Aus", 0, 1, True, False):
+            sp["raster"] = 1 if (srv == "An" or srv is True or (not isinstance(srv, bool) and srv == 1)) else 0
+        srd = spektrum.get("rasterDeck")
+        if isinstance(srd, str) and srd.strip().isdigit():
+            srd = int(srd.strip())
+        if not isinstance(srd, bool) and isinstance(srd, (int, float)) and math.isfinite(srd):
+            sp["rasterDeck"] = max(5, min(100, int(round(srd))))
         if sp:
             o["spektrum"] = sp
     return o

@@ -1,4 +1,4 @@
-# DNX Styler (`v3.15` / UI `v6.28`)
+# DNX Styler (`v3.16` / UI `v6.28`)
 
 <!-- DNX-DISCLAIMER-START -->
 > **Wichtiger Hinweis / Vollständige Distanzierung (Hobby-Mod-Mode)**
@@ -18,7 +18,7 @@
 > - **No Public Support & No Warranty:** There is **no public support**, no warranty, and no liability. Use entirely at your own risk (always create backups and verify on a test system first).
 > - **Pure Hobby Project — Free to Use, Modify & Redistribute:** Created solely out of personal hobby interest in the radio/SDR hobby; freely available to use, share, modify, and improve.
 
-> **Fassungshinweis:** Das Release-Paket trägt die Tag-Version `v3.15`, die UI-Titelleiste zeigt **`DNX Styler v6.28`** (inkl. `v6.26`-Funktionsblöcken, `v6.27`-3D-Hintergrundschutz und `v6.28`-3D-Sync), und `dnx_stand.txt` dokumentiert den Prüfsummenstempel `v6.10 1001775`.
+> **Fassungshinweis:** Das Release-Paket trägt die Tag-Version `v3.16`, die UI-Titelleiste zeigt **`DNX Styler v6.28`** (inkl. Spektrum-/Wasserfall-Entkopplung nach SDR#-Art, kalibriertem dBFS-Spektrum-Raster `#dnx-spek-raster`, `v6.26`-Funktionsblöcken, `v6.27`-3D-Hintergrundschutz und `v6.28`-3D-Sync), und `dnx_stand.txt` dokumentiert den Prüfsummenstempel `v6.11 1018999`. Siehe auch das eigenständige Begleitprojekt [`DNX-Pegel`](https://github.com/KanotixPinguin/DNX-Pegel).
 
 ---
 
@@ -35,10 +35,10 @@
 | **Spektrum-Zahnrad (`⚙`)** | Direktes Spektrum-Paletten-, Hintergrund-, Helligkeits-, Kontrast-, Sättigungs-, Ton-, Weichzeichner-, Höhen- & Deckkraft-Menü | ![Spektrum-Zahnrad (`⚙`)](docs/styler-spektrum-zahnrad.png) |
 | **Wasserfall & 3D (Vorlage)** | 2D-/3D-Paletten (`2411`), 3D-Hintergrund (`SDRangel Plasma`), `Grafik-EQ` & Gesamtansicht | ![Wasserfall & 3D (Vorlage)](docs/preview.png) |
 | **3D-Hintergrund & BEIDE-Split live** | Styler-Block `Wasserfall & 3D` synchronisiert live mit `#dnx3d-toolbar` & WebGL-3D-Split (`BEIDE`) | ![3D-Hintergrund & BEIDE](docs/styler-3d-hintergrund-beide.png) |
-| **Pegel & Profil-Speicherung** | Styler-Block `Pegel (Wasserfall)` (`Für dieses Profil merken` / `Für alle übernehmen` + `RF-GAIN`) synchron zum `PEGEL`-Seitenpanel | ![Pegel & Profile](docs/styler-pegel-profile.png) |
+| **Pegel & Profil-Speicherung** | Styler-Block `Pegel (Wasserfall)` (`Contrast` = nur Wasserfall, `Range` & `Offset` = nur Spektrum, `Automatik`, `Spektrum-Skala`, `Für dieses Profil merken` / `Für alle übernehmen` + `RF-GAIN`) synchron zum `PEGEL`-Seitenpanel | ![Pegel & Profile](docs/styler-pegel-profile.png) |
 | **Speichern, Teilen & Admin-Standard** | Eigene Einstellungen (`Speichern`, `Export`, `Import`, `Reset`), Server-Liste (`:8098`) & Admin-Button `Standard für alle` | ![Admin Teilen Standard](docs/styler-admin-teilen-standard.png) |
 | **Receiver-Darstellung** | `59` Vorlagen, Akzentfarben, Rundung, Leuchtrand, S-Meter-/Pillen-Effekte & eigene Paletten | ![Receiver-Darstellung](docs/styler-receiver-darstellung.png) |
-| **Spektrum & Pegel** | Styler-Block `Spektrum` (Farbe/Palette/Hintergrund/Raster & Reset) | ![Spektrum & Pegel](docs/styler-spektrum-pegel.png) |
+| **Spektrum & Pegel** | Styler-Block `Spektrum` (Farbe/Palette/Hintergrund, `Spektrum-Skala: Pegel (Range & Offset)`, `Spektrum-Raster: An 75 %` & Reset) | ![Spektrum & Pegel](docs/styler-spektrum-pegel.png) |
 | **Rote Linien & Popover** | Interaktive rote Ziehlinien oben (`#dnx-top-line`) / unten (`#dnx-fft-line`) mit Live-Höhenänderung und Dicke-/Farbwahl | ![Rote Linien & Popover](docs/styler-rote-linien.png) |
 | **Werkzeuge an / aus** | Einzel-Schalter für Audio-Filter (AF), DX-Cluster, Funkgerät 1–3, Wasserfall, 2D/3D, Linien, S-Meter & L/R-Seitenwahl | ![Werkzeuge an / aus](docs/styler-rf-werkzeuge.png) |
 | **3D-Wasserfall Integration** | Echtzeit-WebGL-3D-Wasserfall (`STD`/`3D`/`BEIDE`) im Zusammenspiel mit dem Styler-Design | ![3D-Wasserfall Integration](docs/styler-3d-tool.png) |
@@ -71,7 +71,7 @@
 |---|---|---|
 | **OpenWebRX+ Core** | `:8013` / `:8011`, `/ws/` | Lädt `dnx_styler.js` via `plugins/receiver/init.js`; liefert `UI.wfThemes`, `spectrum.draw`, `UI.toggleSpectrum` & CSS-Container. |
 | **`DNX-Integrated-Waterfall-3D` (`dnx_3dtool.js v3.10`)** | `localStorage["dnx_3dtool"]` | Synchronisiert 3D-Ansicht (`STD`/`3D`/`BEIDE`/`⇅`), 3D-Farbverlauf & 3D-Hintergrund bidirektional über `Plugins.dnx_3dtool.configure()`, `window.dnx3dApi`, `dnx3d:hintergrund` und `window.__dnx3dHgWache`. |
-| **`waterfall_pro.js` + `dnx_rf_gain.js`** | `localStorage["dnx.wfpro.state.v3"]` | Stellt `window.__dnxPegelProfile` (Pegel je SDR-Profil) und `__dnxPegelMerken()` für `#dnx-blk-pegel` bereit; bettet `RF-GAIN` im Pegel-Block ein. |
+| **[`DNX-Pegel`](https://github.com/KanotixPinguin/DNX-Pegel) (`waterfall_pro.js v6.62`) + `dnx_rf_gain.js`** | `localStorage["dnx.wfpro.state.v3"]` | Stellt die SDR#-Pegelleiste (`Contrast` = Wasserfall, `Range`/`Offset` = Spektrum), `window.__dnxPegelProfile` (Pegel je SDR-Profil) und `__dnxPegelMerken()` für `#dnx-blk-pegel` bereit; bettet `RF-GAIN` im Pegel-Block ein. |
 | **`styler_share.py` (Teilen- & Standard-Server)** | `:8098`, `~/.dnx/styler_share.db` | Speichert geteilte Community-Skins (`/dnx/styler/save`, max. `200`) und den globalen Admin-Startzustand (`/dnx/styler/std`) mit Echtzeit-SSE-Push (`/dnx/styler/events`). |
 | **`DNX-Receiver-Account-Control` + `dnx_rechte_puffer.js`** | `:8095` / `:8096`, `accounts.sqlite3` | Liefert `window.DNXReceiverRights.can(...)` (`32` Rechte); steuert u. a., ob `styler` (Styler-Fenster & `Standard für alle`), `waterfall3d`, `tool3d` oder `profile_switch` verfügbar sind (`12 h`-Ausfallpuffer nach `6 s` Timeout). |
 | **`DNX-Remote-VIEW` (`dnx_remote_view.js v1.3.0`)** | `:8099`, `runtime/users/*.json` | Ein/Aus über `#dnx-master-remote` (`t_remote`); eigene benutzerbezogene Quellen- und Fenster-Speicherung unter `/save_user/<user>` & `/load_user/<user>`. |
@@ -118,7 +118,7 @@ Alle Höhenänderungen laufen über gemeinsame CSS-Variablen (`--dnx-fft-h` und 
 3. **Zahnradleiste (`#dnx-spec-bar` → `Hoehe`):** Auswahl `0–220 px` (`ST.hoehe`) hebt bei Bedarf eine 0-px-Spektrumzeile direkt auf die Wunschhöhe.
 4. **Styler-Fenster (`#dnx-blk-linien` & `#dnx-blk-spektrum`):** Numerische Schieberegler für **`Rote Linie OBEN – Lage`** (`0–600 px`), **`Rote Linie UNTEN – Lage`** (`0–400 px`), **`Rote Linien – Dicke`** (`1–8 px`) sowie **`Rote Linien – Farbe`** (gilt gleichzeitig für beide Ziehlinien inkl. Schimmer).
 
-> **Spektrum-Skala entkoppelt (`dnxSpekSkala`):** Die vertikale Dynamik der Spektrumkurve nutzt eine eigene Perzentil-Skala (`p50`/`p995`), sodass Wasserfall-Kontrast/Boden/Deckel das Spektrum nicht zusammenstauchen.
+> **Spektrum-Skala sauber entkoppelt (`dnxSpekSkala` & `#dnx-spek-raster`):** Im Modus `Pegel (Range & Offset)` nutzt die Spektrumkurve kalibrierte dBFS-Grenzen direkt aus `Range` (`6–160 dB`) und `Offset` (`-40..+140 dB`), im Modus `Auto` eine eigene Perzentil-Skala (`p50`/`p995`). In beiden Modi zeichnet `#dnx-spek-raster` eine exakte `dBFS`-Achse mit Frequenzraster, und der Wasserfall-Kontrast (`Contrast`) bleibt vollständig vom Spektrum getrennt.
 
 ---
 
@@ -157,8 +157,8 @@ Das Styler-Hauptfenster (`#dnx-styler-ui`, standardmäßig über Button `DNX Sty
 | **`#dnx-blk-receiver`** | `Receiver-Darstellung` | `59` eingebaute Receiver-Themes (`49` Skins + `10` Paletten) + eigene Verlaufs-Paletten (`Palette speichern` / `Eigene entfernen`), Farben (`Akzent`, `Hintergrund`, `Panel`, `Text`), Form (`Rundung 0–16`, `Leuchten`), Effekte (`fx`, `hover`, `sound`, `pitch`), `Ecken`-Schalter, verschiebbare Statusleiste (`◀ ▲ Mitte ▼ ▶` + `Standard`), `5` S-Meter-Effekte & `15` Pillen-Animationen (`PFX`). |
 | **`#dnx-blk-linien`** | `Rote Linien` | `Farbe`, `Dicke` (`1–8 px`), `OBEN-Lage` (`0–600 px`) und `UNTEN-Lage` (`0–400 px`) synchron für `#dnx-top-line` & `#dnx-fft-line`. |
 | **`#dnx-blk-wasserfall`** | `Wasserfall & 3D` | `Wasserfall an/aus`, `Wasserfall-Palette`, `Wasserfall (2D)` (`99`), `3D-Wasserfall` (`29`+) & `3D-Hintergrund` (`107`) mit Live-Vorschaustreifen. |
-| **`#dnx-blk-spektrum`** | `Spektrum` | `Spektrum an/aus`, `Spektrum-Farbe`, `Spektrum-Palette` (`108`), `Spektrum-Hintergrund` (`107`), `Spektrum-Raster` (`Aus`/`An`), Deckkraft & `Alle Farben und Linien zurücksetzen`. |
-| **`#dnx-blk-pegel`** | `Pegel (Wasserfall)` | `Kontrast` (`0–100`), `Boden (untere Kante)` (`-150..+10 dB`), `Deckel (obere Kante)` (`-140..+30 dB`), `Automatik (Fenster selbst messen)`, **`Für dieses Profil merken`** (`__dnxPegelMerken()`), **`Für alle übernehmen`** (`dnxStdSenden()`) + integrierter **`RF-GAIN`**-Drehknopf (`AGC`/`manuell`). |
+| **`#dnx-blk-spektrum`** | `Spektrum` | `Spektrum an/aus`, `Spektrum-Farbe`, `Spektrum-Palette` (`108`), `Spektrum-Hintergrund` (`107`), `Spektrum-Skala` (`Pegel (Range & Offset)` / `Auto`), kalibriertes `Spektrum-Raster` (`An` / `Aus`, Vorgabe `75 %`), `Raster-Deckkraft` (`5–100 %`) & `Alle Farben und Linien zurücksetzen`. |
+| **`#dnx-blk-pegel`** | `Pegel (Wasserfall)` | `Contrast (Wasserfall)` (`0–100`), `Range (Spektrum dB-Spanne)` (`6–160 dB`), `Offset (Spektrum-Hebung)` (`-40..+140 dB`), `Automatik (Spektrum-Fenster selbst messen)`, `Spektrum-Skala` (`Pegel (Range & Offset)` / `Auto`), **`Für dieses Profil merken`** (`__dnxPegelMerken()`), **`Für alle übernehmen`** (`dnxStdSenden()`) + integrierter **`RF-GAIN`**-Drehknopf (`AGC`/`manuell`). |
 | **`#dnx-blk-tools`** | `Werkzeuge an / aus` | `26` `TOOL_DEFS`-Einzelschalter (`t_af`, `t_dx`, `t_sonne`, `t_funkgeraet1/2/3`, `t_wf`, `t_fft`, `t_ansicht`, `t_gelb`, `t_gruen`, `t_status`, `t_smeter`, `t_tool3d`, `t_novnc`, `t_remote`, `t_zeitachse`, `t_adsb`, `t_ais`, `t_sounds`, `t_oslot`, `t_dmr`, `t_pegel`, `t_eq`, `t_wetter`, `t_favoriten`, `t_magnet`, `t_iss`) + **`L` / `R`-Seitenposition** für `Zeitachse`, `Pegel` & `DMR-Slots`. |
 | **`#dnx-blk-smeternadel`** | `S-Meter (Nadel)` | `4` Modelle (`neu` / `georg1` / `georg2` / `alan48`), `7` LCD-Farben (`orange`, `gelb`, `gruen`, `blau`, `tuerkis`, `rot`, `weiss`), Ein/Aus, `◀ ▲ Mitte ▼ ▶`-Positionierung (`DNX_SM_SX`/`SY`) & **`S-Meter für alle übernehmen`** (`#dnx-sm-std`). |
 | **`#dnx-blk-zeit`** | `Zeitachse` | Zeitmarken-Abstand (`aus`, `5 min`, `15 min`, `30 min`, `1 h`, `2 h`, `4 h`, `8 h`, `12 h`), Seitenauswahl (`L` / `R`), Schriftgröße & Transparenz. |
@@ -180,7 +180,7 @@ Ohne Anmeldung speichert jeder Browser unabhängig alle optischen & funktionalen
 
 ![Pegel und Profil-Speicherung](docs/styler-pegel-profile.png)
 
-* Über **`Für dieses Profil merken`** (`__dnxPegelMerken()`) schreibt der Styler die aktuellen Wasserfall-Pegel (`boden`, `deckel`, `kontrast`, `autoFit`) gezielt für das **gerade aktive Empfängerprofil** in `window.__dnxPegelProfile` (`waterfall_pro.js`, `dnx.wfpro.state.v3`).
+* Über **`Für dieses Profil merken`** (`__dnxPegelMerken()`) schreibt der Styler die aktuellen Pegel (`range`, `offset`, `boden`, `deckel`, `kontrast`, `autoFit`) gezielt für das **gerade aktive Empfängerprofil** in `window.__dnxPegelProfile` (`waterfall_pro.js`, `dnx.wfpro.state.v3`).
 * Beim Wechseln zwischen Bändern (z. B. `2m`, `70cm`, `CB`, `80m`) bleiben schwächere und stärkere Bänder sauber abgestimmt – ohne jedes Mal nachzuregeln.
 * Klickt ein berechtigter Betreiber auf **`Für alle übernehmen`** (`dnxStdSenden()`), werden sowohl der aktuelle Grundpegel als auch bis zu **`300` profilspezifische Pegelsätze** (`pegel.profile`) über `styler_share.py` (`:8098`) verteilt.
 
@@ -201,7 +201,7 @@ Der schlanke Python-Standardbibliothek-Dienst `styler_share.py` betreibt `~/.dnx
 |---|---|---|
 | **`POST /dnx/styler/save`** | Speichert benannte Community-Skins in Tabelle `skins` (max. `200` Einträge) | Whitelist **`SCHLUESSEL`** (`name`, `preset`, `bg`, `panel`, `accent`, `btn`, `text`, `btntext`, `radius`, `glow`, `fx`, `sound`, `hover`, `pitch`, `rh`, `pal`, `stan`, `stf`, `staus`, `stx`, `sty`, `mt*`, `wf`, `fft`, `wf_an`, `fft_an`, `m3d`, `m3d_flip`) + `t_*`-Werkzeugschalter. Liefert ein Lösch-Token (`localStorage["dnx_styler_share_tok_<id>"]`). |
 | **`GET /dnx/styler/state` & `/get?id=`** | Listet bis zu `200` geteilte Skins und lädt einen gewählten Skin auf Klick | Reine Leseabfrage für alle Besucher. |
-| **`GET/POST /dnx/styler/std`** | Admin-Startzustand (**`Standard für alle`** / **`S-Meter für alle`** / **`Für alle übernehmen`**) in Tabelle `standard` | Whitelist **`saeubern_std`** (`wf`, `fft`, `wf_an`, `fft_an`, `m3d`, `m3d_flip`, `tools`, `farben` inkl. `cmap3d`/`bg3d`/`pal`/`hg`/`linieFarbe`/`linieDicke`/`fftH`/`topH`, `skin`, `effekte` inkl. `sm_modell`/`sm_lcd`, `seiten`, `pegel` inkl. bis zu `300` `profile`, `spektrum` ohne `hoehe`). |
+| **`GET/POST /dnx/styler/std`** | Admin-Startzustand (**`Standard für alle`** / **`S-Meter für alle`** / **`Für alle übernehmen`**) in Tabelle `standard` | Whitelist **`saeubern_std`** (`wf`, `fft`, `wf_an`, `fft_an`, `m3d`, `m3d_flip`, `tools`, `farben` inkl. `cmap3d`/`bg3d`/`pal`/`hg`/`skala`/`raster`/`rasterDeck`/`linieFarbe`/`linieDicke`/`fftH`/`topH`, `skin`, `effekte` inkl. `sm_modell`/`sm_lcd`, `seiten`, `pegel` inkl. `_saeubere_pegel_satz()` für `range`/`offset`/`boden`/`deckel`/`kontrast`/`autoFit` & bis zu `300` `profile`, `spektrum` inkl. `skala`/`raster`/`rasterDeck` ohne `hoehe`). |
 | **`GET /dnx/styler/events`** | **SSE-Live-Push** (`STANDARD_SIGNAL`, max. `256` parallele Streams + `8 s`-Polling-Fallback) | Überträgt einen Nanosekunden-Revisionsstempel (`ts`); Browser merken sich die übernommene Revision unter `STD_TS_KEY` / `dnx_styler_std_signatur_v1`, damit spätere persönliche Anpassungen nicht überschrieben werden. |
 
 ---
@@ -210,9 +210,9 @@ Der schlanke Python-Standardbibliothek-Dienst `styler_share.py` betreibt `~/.dnx
 
 | Datei | Ziel / Target | Zweck / Purpose |
 |---|---|---|
-| `dnx_styler.js` | `…/htdocs/plugins/receiver/dnx_styler.js` | Kompletter DNX Styler (`v6.28`, `1.001.775 B`) |
-| `dnx_stand.txt` | `…/htdocs/plugins/receiver/dnx_stand.txt` | Versions-/Größenstempel (`v6.10 1001775`) |
-| `styler_share.py` | Host-Dienst (optional, Port `8098`) | SQLite Teilen- & SSE-Globalstandard-Dienst (`DNX_SHARE_DIR` / `~/.dnx`) |
+| `dnx_styler.js` | `…/htdocs/plugins/receiver/dnx_styler.js` | Kompletter DNX Styler (`v6.28` / Stempel `v6.11`, `1.018.999 B`) |
+| `dnx_stand.txt` | `…/htdocs/plugins/receiver/dnx_stand.txt` | Versions-/Größenstempel (`v6.11 1018999`) |
+| `styler_share.py` | Host-Dienst (optional, Port `8098`) | SQLite Teilen- & SSE-Globalstandard-Dienst (`v4`, inkl. `range`/`offset`-Normalisierung & Spektrum-Skala/Raster) |
 | `docs/ARCHITEKTUR.md` | — | Vollständige Schlüssel-, Endpunkt- & Bridge-Referenz |
 | `docs/` | — | 14 bereinigte Funktionsscreenshots (`1600×980`) + 2 Architektur-/Datenflussdiagramme (`1800×1120`) |
 | `LICENSE`, `SHA256SUMS.txt` | — | MIT-Lizenz & Prüfsummen |
