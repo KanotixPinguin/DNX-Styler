@@ -449,38 +449,35 @@ setInterval(function(){
     return e;
   }
 
-  function loop(){
+  let wfEl = null, lastKey = "", lastTick = 0;
+  function loop(ts){
+    requestAnimationFrame(loop);
+    if(document.hidden) return;
+    if(ts && ts - lastTick < 50) return;
+    lastTick = ts || performance.now();
     try{
       if(typeof demodulators==="undefined" || !demodulators.length) return;
-
       let d = demodulators[0];
       if(!d || !d.low_cut) return;
-
-      let wf=document.querySelector("#openwebrx-waterfall-container");
-      if(!wf) return;
-
-      let r=wf.getBoundingClientRect();
-
-      let l=ensure("dnx-bypass-left");
-      let rr=ensure("dnx-bypass-right");
-
+      if(!wfEl || !wfEl.isConnected) wfEl = document.querySelector("#openwebrx-waterfall-container");
+      if(!wfEl) return;
+      let r = wfEl.getBoundingClientRect();
       let left = (d.offset_frequency + d.low_cut - center_freq) / hz_per_pixel;
       let right = (d.offset_frequency + d.high_cut - center_freq) / hz_per_pixel;
-
-      l.style.left = (r.left + left) + "px";
-      rr.style.left = (r.left + right) + "px";
-
-      l.style.top = r.top + "px";
-      rr.style.top = r.top + "px";
-
-      l.style.height = r.height + "px";
-      rr.style.height = r.height + "px";
-
+      let lx = (r.left + left).toFixed(1), rx = (r.left + right).toFixed(1);
+      let tp = r.top.toFixed(1), ht = r.height.toFixed(1);
+      let k = lx + "|" + rx + "|" + tp + "|" + ht;
+      if(k === lastKey) return;
+      lastKey = k;
+      let l = ensure("dnx-bypass-left");
+      let rr = ensure("dnx-bypass-right");
+      l.style.left = lx + "px"; rr.style.left = rx + "px";
+      l.style.top = tp + "px"; rr.style.top = tp + "px";
+      l.style.height = ht + "px"; rr.style.height = ht + "px";
     }catch(e){}
-    requestAnimationFrame(loop);
   }
 
-  loop();
+  requestAnimationFrame(loop);
 })();
 
 
@@ -823,7 +820,7 @@ setInterval(function(){
 
   function hide(el){
     try{
-      if(!el) return;
+      if(!el || el.style.display === 'none') return;
       el.style.display = 'none';
       el.style.opacity = '0';
       el.style.visibility = 'hidden';
@@ -837,14 +834,17 @@ setInterval(function(){
     try{
       var box = document.getElementById(id);
       if(!box) return;
-      box.style.display = 'none';
-      box.style.opacity = '0';
-      box.style.visibility = 'hidden';
-      box.innerHTML = '';
+      if(box.style.display !== 'none'){
+        box.style.display = 'none';
+        box.style.opacity = '0';
+        box.style.visibility = 'hidden';
+      }
+      if(box.firstChild){ box.textContent = ''; }
     }catch(e){}
   }
 
   function loop(){
+    if(document.hidden) return;
     try{
       if(window.__dnxYellowEnabled === false){
         hide(window.yellowLine);
@@ -866,10 +866,10 @@ setInterval(function(){
         wipeBox('dnx-seg-green');
       }
     }catch(e){}
-    requestAnimationFrame(loop);
   }
 
   loop();
+  setInterval(loop, 250);
 })();
 
 
@@ -1430,12 +1430,19 @@ setInterval(function(){
     attachPanel();
   });
 
-  new MutationObserver(function(){
-    var panel = document.getElementById(PANEL_ID);
-    if(panel && body && panel.parentNode !== body){
-      attachPanel();
-    }
-  }).observe(document.documentElement, {childList:true, subtree:true});
+  var ovMoPend = false;
+  var ovMo = new MutationObserver(function(){
+    if(ovMoPend) return;
+    ovMoPend = true;
+    requestAnimationFrame(function(){
+      ovMoPend = false;
+      var panel = document.getElementById(PANEL_ID);
+      if(panel && (!body || panel.parentNode !== body)){
+        attachPanel();
+      }
+    });
+  });
+  ovMo.observe(document.body || document.documentElement, {childList:true, subtree:true});
 })();
  /* DNX_RECEIVER_OVERLAY_END */
 
@@ -1531,9 +1538,9 @@ setInterval(function(){
     var box = document.getElementById("dnx-fx-box");
     if(!receiver || !box) return;
 
-    box.style.setProperty("display", "block", "important");
-    box.style.setProperty("visibility", "visible", "important");
-    box.style.setProperty("opacity", "1", "important");
+    if(box.style.getPropertyValue("display") !== "block") box.style.setProperty("display", "block", "important");
+    if(box.style.getPropertyValue("visibility") !== "visible") box.style.setProperty("visibility", "visible", "important");
+    if(box.style.getPropertyValue("opacity") !== "1") box.style.setProperty("opacity", "1", "important");
 
     var freqBlock =
       receiver.querySelector(".webrx-actual-freq-holder") ||
@@ -1564,14 +1571,22 @@ setInterval(function(){
 
   window.addEventListener("load", function(){
     setTimeout(placeFx, 500);
-  });
+  }, {once:true});
 
-  new MutationObserver(placeFx).observe(document.documentElement, {
+  var fxPend = false;
+  new MutationObserver(function(){
+    if(fxPend) return;
+    fxPend = true;
+    requestAnimationFrame(function(){
+      fxPend = false;
+      placeFx();
+    });
+  }).observe(document.getElementById("openwebrx-panel-receiver") || document.body || document.documentElement, {
     childList:true,
     subtree:true
   });
 
-  setInterval(placeFx, 1000);
+  setInterval(placeFx, 2500);
 })();
 /* DNX_FXBOX_FIX_END */
 
@@ -3182,13 +3197,12 @@ window.__dnxPegel = window.__dnxPegel || function(prozent){
     window.__dnxDescHoeheAktiv = true;
     var clamped = clampHeight(height);
     state.height = clamped;
-    desc.style.height = Math.round(clamped) + "px";
-    desc.style.maxHeight = Math.round(clamped) + "px";
-    /* v6.15: weil die Hoehe hier begrenzt wird, sorgt auto dafuer, dass man
-       den Rest (VNC 1 / VNC 2, Fotos, Texte) scrollend erreichen kann */
-    desc.style.overflowX = "hidden";
-    desc.style.overflowY = "auto";
-    desc.style.overscrollBehavior = "contain";
+    var hs = Math.round(clamped) + "px";
+    if (desc.style.height !== hs) desc.style.height = hs;
+    if (desc.style.maxHeight !== hs) desc.style.maxHeight = hs;
+    if (desc.style.overflowX !== "hidden") desc.style.overflowX = "hidden";
+    if (desc.style.overflowY !== "auto") desc.style.overflowY = "auto";
+    if (desc.style.overscrollBehavior !== "contain") desc.style.overscrollBehavior = "contain";
     if (isMobileLayout()) {
       state.mobileExpanded = clamped > mobileDefaultHeight() + 18;
       var details = desc.querySelector(".webrx-rx-photo-desc");
@@ -3343,14 +3357,34 @@ window.__dnxPegel = window.__dnxPegel || function(prozent){
   function boot() {
     refresh();
 
-    var observer = new MutationObserver(function () {
-      refresh();
+    var refPend = false;
+    function scheduleRefresh() {
+      if (refPend) return;
+      refPend = true;
+      window.requestAnimationFrame(function () {
+        refPend = false;
+        refresh();
+      });
+    }
+    var observer = new MutationObserver(function (muts) {
+      /* Ignoriere Hochfrequenz-Mutationen (S-Meter, Raster, Wasserfall) komplett */
+      if (state.desc && state.desc.isConnected && state.header && state.header.isConnected) {
+        var relevant = false;
+        for (var mi = 0; mi < muts.length; mi++) {
+          var t = muts[mi].target;
+          if (t === state.desc || t === state.header || (t && t.id === "openwebrx-panels-container-left")) {
+            relevant = true; break;
+          }
+        }
+        if (!relevant) return;
+      }
+      scheduleRefresh();
     });
-    observer.observe(document.documentElement, {
+    observer.observe(document.body || document.documentElement, {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ["style", "class"]
+      attributeFilter: ["class"]
     });
 
     window.addEventListener("resize", function () {
@@ -9269,22 +9303,36 @@ setInterval(fmLupeTakt,250);
    Empfaenger); fmWache()/fmLeben() laufen weiter nur alle 250 ms. */
 var FM_LUPE_VOLL = false, FM_LUPE_ZULETZT = 0, FM_LUPE_TICK = 0;
 var FM_LUPE_SIG = "", FM_LUPE_STILLT = 0;      /* v3.22: steht das Bild? */
+var FM_WIN_EL = null;
 function fmLupePuls(){
   try{
-    var w = document.getElementById("dnx-fm-window");
-    if(!w || getComputedStyle(w).display === "none"){ return; }
+    var w = FM_WIN_EL && FM_WIN_EL.isConnected ? FM_WIN_EL : (FM_WIN_EL = document.getElementById("dnx-fm-window"));
+    if(!w || w.style.display === "none" || !w.offsetParent){ return false; }
     var an = document.getElementById("fm-live-an");
-    if(an && !an.checked){ return; }
+    if(an && !an.checked){ return false; }
     var jetzt = Date.now();
-    if(jetzt - FM_LUPE_ZULETZT < 40){ return; }
+    if(jetzt - FM_LUPE_ZULETZT < 40){ return true; }
     FM_LUPE_ZULETZT = jetzt;
     if(jetzt - FM_LUPE_TICK >= 240){ FM_LUPE_TICK = jetzt; FM_LUPE_VOLL = true; }
     fmLupeTakt();
-  }catch(e){}
+    return true;
+  }catch(e){ return false; }
 }
 (function(){
-  function s(){ try{ fmLupePuls(); }catch(e){} if(window.requestAnimationFrame){ window.requestAnimationFrame(s); } }
-  if(window.requestAnimationFrame){ window.requestAnimationFrame(s); }
+  var rafId = 0;
+  function s(){
+    rafId = 0;
+    if(fmLupePuls() && window.requestAnimationFrame){
+      rafId = window.requestAnimationFrame(s);
+    }
+  }
+  setInterval(function(){
+    if(document.hidden || rafId) return;
+    var w = FM_WIN_EL && FM_WIN_EL.isConnected ? FM_WIN_EL : (FM_WIN_EL = document.getElementById("dnx-fm-window"));
+    if(w && w.style.display !== "none" && w.offsetParent && window.requestAnimationFrame){
+      rafId = window.requestAnimationFrame(s);
+    }
+  }, 250);
 })();
 /* ================= v3.23: eigene Bildrolle - laeuft wie der echte Wasserfall ================= */
 var FM_LIN = {
@@ -10863,61 +10911,29 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
         ": " +
         (active ? "On" : "Off");
 
-      button.style.setProperty(
-        "background",
-        active ? tool.color : "#666666",
-        "important"
-      );
-
-      button.style.setProperty(
-        "color",
-        active ? tool.textColor : "#ffffff",
-        "important"
-      );
-
-      button.style.setProperty(
-        "animation",
-        "none",
-        "important"
-      );
-
-      button.style.setProperty(
-        "transition",
-        "none",
-        "important"
-      );
-
-      button.style.setProperty(
-        "transform",
-        "none",
-        "important"
-      );
-
-      button.style.setProperty(
-        "filter",
-        "none",
-        "important"
-      );
-
-      try{
-        button.getAnimations().forEach(
-          function(animation){
-            animation.cancel();
-          }
-        );
-      }catch(error){}
+      var sig = (active ? "1" : "0") + "|" + tool.color;
+      if(button.dataset.dnxMtrSig !== sig){
+        button.dataset.dnxMtrSig = sig;
+        button.style.setProperty("background", active ? tool.color : "#666666", "important");
+        button.style.setProperty("color", active ? tool.textColor : "#ffffff", "important");
+        if(button.dataset.dnxMtrInit !== "1"){
+          button.dataset.dnxMtrInit = "1";
+          button.style.setProperty("animation", "none", "important");
+          button.style.setProperty("transition", "none", "important");
+          button.style.setProperty("transform", "none", "important");
+          button.style.setProperty("filter", "none", "important");
+          try{
+            button.getAnimations().forEach(function(animation){ animation.cancel(); });
+          }catch(error){}
+        }
+      }
     });
   }
 
   function boot(){
     installStyle();
     paint();
-
-    /*
-     * Nur Farben/Text aktualisieren.
-     * Keine Elemente verschieben oder neu erzeugen.
-     */
-    setInterval(paint,500);
+    setInterval(paint, 1200);
   }
 
   if(document.readyState==="loading"){
@@ -13330,7 +13346,7 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
      mit chroma.scale(colors) macht). Keine Core-Datei wird angefasst. */
   var DNX_MSDR_TAB = [
     /* v3.65: "2511" - echte Palette aus /opt/dnx-multisdr/apps/web/dnx-render-core.js (188), Zeile 213 */
-    "2511|2511|0:0,0,0;60:0,0,18;180:0,0,55;300:0,0,180;400:0,65,255;540:210,0,210;660:255,0,35;760:255,80,0;840:255,225,0;900:255,255,255;1000:255,255,255",
+    "2511|2511|0:4,0,50;70:5,1,62;170:7,3,74;285:12,12,150;395:20,28,225;530:155,0,215;660:255,8,28;765:255,95,0;845:255,215,0;905:255,255,255;1000:255,255,255",
     /* v3.74: "2411" - gebaut nach dem Satz von dnx833:
        "von mitte weis ins knall lila dann wenig blau rest dunkel blau"
        Aufteilung der Skala (1000 = staerkstes Signal):
@@ -13895,17 +13911,28 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
     var el = sv.el;
     if(!el || !(el.clientHeight > 0)){ return; }
 
-    /* Kontext aufbauen - dieser Teil steht im Core mitten in draw() und
-       muss hier nachgebildet werden, sonst gibt es keine Zeichenflaeche. */
     var w = el.offsetWidth, h = el.offsetHeight;
     if(!(w > 0) || !(h > 0)){ return; }
-    if(!sv.ctx || w != el.width || h != el.height){
+    var sizeChanged = (!sv.ctx || w != el.width || h != el.height);
+    if(sizeChanged){
       el.width = w; el.height = h;
       sv.ctx = el.getContext("2d");
     }
     var ctx = sv.ctx;
     if(!ctx){ return; }
     w = el.width; h = el.height;
+
+    var renderSig = pn + "|" + w + "|" + h + "|" +
+      (window.__dnxSpekRasterAn ? 1 : 0) + "|" +
+      String(typeof center_freq !== "undefined" ? center_freq : 0) + "|" +
+      String(typeof bandwidth !== "undefined" ? bandwidth : 0) + "|" +
+      String(sv.min) + "|" + String(sv.max) + "|" +
+      String(window.__dnxSpekCfgVer || 0);
+    if(!sizeChanged && !sv.__dnxDirty && sv.__dnxLastRenderSig === renderSig){
+      return;
+    }
+    sv.__dnxDirty = false;
+    sv.__dnxLastRenderSig = renderSig;
 
     var farben = dnxSpekFarben(pn);
 
@@ -13938,24 +13965,24 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
        oberhalb des Spektrums gebraucht wird. */
     window.__dnxSpekGrund = (hg.length >= 4) ? (hg[2] || hg[0]) : (hg[0] || farben[0]);
     var glow = DNX_FFT_GLOW[pn];
-    var gl = null, glx = null, glb = null, glbx = null;
+    var glb = null, glbx = null, glc = null, glcx = null;
+    var gw = Math.max(64, (w + 3) >> 2), gh2 = Math.max(24, (h + 3) >> 2);
     if(glow && glow.length >= 3){
       try{
-        gl = sv.__dnxGlow;
-        if(!gl){ gl = document.createElement("canvas"); sv.__dnxGlow = gl; }
-        if(gl.width !== w || gl.height !== h){ gl.width = w; gl.height = h; }
-        glx = gl.getContext("2d");
-        if(glx){ glx.clearRect(0, 0, w, h); }
-        /* zweite Flaeche: hierauf wird der Bloom gerechnet, damit die
-           scharfen Balken unberuehrt bleiben */
+        sv.__dnxGlow = null;
         glb = sv.__dnxGlowB;
         if(!glb){ glb = document.createElement("canvas"); sv.__dnxGlowB = glb; }
-        if(glb.width !== w || glb.height !== h){ glb.width = w; glb.height = h; }
+        if(glb.width !== gw || glb.height !== gh2){ glb.width = gw; glb.height = gh2; }
         glbx = glb.getContext("2d");
-        if(glbx){ glbx.clearRect(0, 0, w, h); }
-      }catch(eG0){ glx = null; glbx = null; }
+        if(glbx){ glbx.clearRect(0, 0, gw, gh2); }
+        glc = sv.__dnxGlowC;
+        if(!glc){ glc = document.createElement("canvas"); sv.__dnxGlowC = glc; }
+        if(glc.width !== gw || glc.height !== gh2){ glc.width = gw; glc.height = gh2; }
+        glcx = glc.getContext("2d");
+        if(glcx){ glcx.clearRect(0, 0, gw, gh2); }
+      }catch(eG0){ glbx = null; glcx = null; }
     }
-    var ziel = glx || ctx;
+    var ziel = ctx;
 
     /* Sichtbarer Bereich und Datenfenster wie im Core */
     var data_start, data_end;
@@ -14021,11 +14048,74 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
     ziel.fillStyle = gr;
 
     var x, y, xr;
+    /* v3.110 + Perf: Glow direkt auf 1/4-Canvas gezeichnet & geblurt (kein 1600px Downsample), scharfe Balken danach direkt auf ctx */
+    if(glbx && glcx){
+      try{
+        var yrG = gh2 / data_height;
+        var gUntenG = gUnten * (gh2 / h), gObenG = gOben * (gh2 / h);
+        var grG = glbx.createLinearGradient(0, gUntenG, 0, gObenG);
+        grG.addColorStop(0.00, farben[1]);
+        grG.addColorStop(0.55, farben[2]);
+        grG.addColorStop(1.00, farben[3]);
+        glbx.clearRect(0, 0, gw, gh2);
+        glbx.globalCompositeOperation = "source-over";
+        glbx.fillStyle = grG;
+        glbx.beginPath();
+        if(gw <= data_width){
+          var xrG = data_width / gw;
+          for(x = 0; x < gw; x++){
+            y = (sv.data[data_start + ((x * xrG) | 0)] - dmin) * yrG;
+            if(y > 0){ if(y > gh2) y = gh2; glbx.rect(x, gh2 - y, 1, y); }
+          }
+        }else{
+          var xrG2 = gw / data_width, xpG = 0;
+          for(x = 0; x < data_width; x++){
+            y = (sv.data[data_start + x] - dmin) * yrG;
+            var kG = ((x + 1) * xrG2) | 0;
+            if(y > 0){ if(y > gh2) y = gh2; glbx.rect(xpG, gh2 - y, kG - xpG, y); }
+            xpG = kG;
+          }
+        }
+        glbx.fill();
+        glcx.clearRect(0, 0, gw, gh2);
+        glcx.globalCompositeOperation = "source-over";
+        glcx.drawImage(glb, 0, 0);
+        var boost = glow[0] || 1;
+        glbx.globalCompositeOperation = "lighter";
+        for(var gb = 0; gb < boost; gb++){ glbx.drawImage(glc, 0, 0); }
+        glbx.globalCompositeOperation = "source-over";
+      }catch(eB){}
+      try{
+        glcx.save();
+        glcx.clearRect(0, 0, gw, gh2);
+        glcx.globalCompositeOperation = "screen";
+        for(var gs = 1; (gs + 1) < glow.length; gs += 2){
+          var gb2 = glow[gs], ga2 = glow[gs + 1];
+          if(!(gb2 > 0) || !(ga2 > 0)){ continue; }
+          glcx.filter = "blur(" + Math.max(0.5, gb2 * 0.25).toFixed(2) + "px)";
+          glcx.globalAlpha = ga2;
+          glcx.drawImage(glb, 0, 0);
+        }
+        glcx.restore();
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        ctx.imageSmoothingEnabled = true;
+        ctx.filter = "none";
+        ctx.drawImage(glc, 0, 0, gw, gh2, 0, 0, w, h);
+        ctx.restore();
+      }catch(eG1){}
+    }
+
+    ziel.fillStyle = gr;
+    ziel.beginPath();
     if(w <= data_width){
       xr = data_width / w;
       for(x = 0; x < w; x++){
         y = (sv.data[data_start + ((x * xr) | 0)] - dmin) * yr;
-        if(y > 0){ ziel.fillRect(x, h, 1, -y); }
+        if(y > 0){
+          if(y > h) y = h;
+          ziel.rect(x, h - y, 1, y);
+        }
       }
     }else{
       xr = w / data_width;
@@ -14033,52 +14123,14 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
       for(x = 0; x < data_width; x++){
         y = (sv.data[data_start + x] - dmin) * yr;
         var k = ((x + 1) * xr) | 0;
-        if(y > 0){ ziel.fillRect(xp, h, k - xp, -y); }
+        if(y > 0){
+          if(y > h) y = h;
+          ziel.rect(xp, h - y, k - xp, y);
+        }
         xp = k;
       }
     }
-
-    /* v3.110: Glow - weich und additiv DARUNTER, scharf DARUEBER. */
-    if(glx && glbx){
-      /* 1) Bloom auf der ZWEITEN Flaeche: helle Spitzen additiv verstaerken,
-            dunkles Rauschen bleibt dunkel. Die scharfen Balken in gl bleiben
-            dabei unberuehrt - das ist der Unterschied zu v3.111. */
-      try{
-        glbx.clearRect(0, 0, w, h);
-        glbx.globalCompositeOperation = "source-over";
-        glbx.drawImage(gl, 0, 0);
-        var boost = glow[0] || 1;
-        glbx.globalCompositeOperation = "lighter";
-        for(var gb = 0; gb < boost; gb++){ glbx.drawImage(glb, 0, 0); }
-        glbx.globalCompositeOperation = "source-over";
-      }catch(eB){}
-      /* 2) v3.112: der Schein kommt UNTER die Balken. Lag er darueber, wurden
-         die Balken mit aufgehellt und brannten ins Weiss aus (gemessen: 1241
-         von 18000 Pixeln weiss). Jetzt strahlt nur der dunkle Grund. */
-      try{
-        for(var gs = 1; (gs + 1) < glow.length; gs += 2){
-          var gb2 = glow[gs], ga2 = glow[gs + 1];
-          if(!(gb2 > 0) || !(ga2 > 0)){ continue; }
-          ctx.save();
-          /* v3.115: ENTSCHEIDUNG - "screen", nicht "lighter".
-             Gemessener Vergleich auf dem farbigen Grund:
-               screen  -> Schein +5.8, Reichweite 10 px,  92/18000 weiss
-               lighter -> Schein +4.6, Reichweite 10 px, 373/18000 weiss
-             Additiv bringt also KEINEN staerkeren Schein (der Grund ist schon
-             heller, es fehlt der Abstand zur Saettigung), brennt aber vier Mal
-             so viele Pixel aus. "screen" ist hier die bessere Wahl.
-             Der Schein liegt seit v3.112 UNTER den Balken - die werden danach
-             deckend darueber gemalt und behalten ihre Farbe. */
-          ctx.globalCompositeOperation = "screen";
-          ctx.filter = "blur(" + gb2 + "px)";
-          ctx.globalAlpha = ga2;
-          ctx.drawImage(glb, 0, 0);
-          ctx.restore();
-        }
-      }catch(eG1){}
-      /* 3) scharfe, farbige Balken zuletzt darueber */
-      try{ ctx.drawImage(gl, 0, 0); }catch(eG2){}
-    }
+    ziel.fill();
 
     /* helle Oberkante - laesst Signalspitzen deutlich hervortreten */
     try{
@@ -14168,6 +14220,7 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
           var s = window.spectrum;
           if(!s){ return false; }
           s.__dnxSkala = null;
+          s.__dnxDirty = true;
           if(dnxSpekModus() === "pegel"){
             var pb = dnxSpekPegelBereich();
             if(pb){ s.min = pb.min; s.max = pb.max; }
@@ -14206,6 +14259,7 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
       var updAlt = window.Spectrum.prototype.update;
       window.Spectrum.prototype.__dnxUpdAlt = updAlt;
       window.Spectrum.prototype.update = function(){
+        this.__dnxDirty = true;
         var r = updAlt.apply(this, arguments);
         try{
           var ds = 0, de = this.data ? this.data.length : 0;
@@ -15700,6 +15754,8 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
     return true;
   }
   function dnxAnBoot(){
+    if(window.__dnxAnBootDone) return;
+    window.__dnxAnBootDone = true;
     dnxAnSheet();
     dnxAnTick();
     dnxStdLaden();
@@ -15707,16 +15763,20 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
     /* v3.83: Werkzeugreihe aufraeumen und sortieren */
     try{
       dnxRowAnordnen();
-      setInterval(function(){ try{ dnxRowAnordnen(); dnxRowEinheitlich(); }catch(e){} }, 250);
-      /* v5.0: sobald ein anderes Plugin eine andere Farbe setzt, sofort zurueck
-         auf das einheitliche Gruen - dadurch kein Blinken mehr */
+      setInterval(function(){ if(!document.hidden){ try{ dnxRowAnordnen(); dnxRowEinheitlich(); }catch(e){} } }, 1500);
       try{
         var rowBeob = document.getElementById("dnx-master-tool-row");
         if(rowBeob && window.MutationObserver){
+          var rowMoPend = false;
           var mo = new MutationObserver(function(){
-            try{ dnxRowEinheitlich(); }catch(e){}
+            if(rowMoPend) return;
+            rowMoPend = true;
+            requestAnimationFrame(function(){
+              rowMoPend = false;
+              try{ dnxRowEinheitlich(); }catch(e){}
+            });
           });
-          mo.observe(rowBeob, { attributes:true, attributeFilter:["style"], subtree:true, childList:true });
+          mo.observe(rowBeob, { childList:true });
         }
       }catch(eMo){}
       /* Farben einmalig nachziehen (nicht im Takt - sonst blinken Knoepfe) */
@@ -16466,6 +16526,28 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
         if(dnxFensterSetzen("dnx-iss-fenster", !!an, "dnx-master-iss")){ return true; }
         try{ if(window.__dnxIssZeigen && dnxFensterOffen("dnx-iss-fenster") !== !!an){ window.__dnxIssZeigen(); return true; } }catch(eISS){}
         return false;
+      } },
+    { k:"wfglaettung", label:"WF-Gl\u00e4ttung",
+      is:function(){
+        if(window.dnxWfGlaettung && typeof window.dnxWfGlaettung.isEnabled === "function"){
+          try{ return !!window.dnxWfGlaettung.isEnabled(); }catch(e){}
+        }
+        return tTextState("dnx-master-wfglaettung");
+      },
+      set:function(an){
+        try{
+          if(window.dnxWfGlaettung && typeof window.dnxWfGlaettung.setEnabled === "function"){
+            window.dnxWfGlaettung.setEnabled(!!an);
+            if(typeof window.dnxWfGlaettung.togglePanel === "function"){
+              window.dnxWfGlaettung.togglePanel(!!an);
+            }
+            return true;
+          }
+        }catch(e){}
+        var jetzt = tTextState("dnx-master-wfglaettung");
+        if(jetzt === null){ return false; }
+        if(jetzt !== !!an){ return tClick("dnx-master-wfglaettung"); }
+        return true;
       } },
   ];
 
@@ -18403,9 +18485,14 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
     }catch(e2){}
     return -1;
   }
-  function dnxLineLoop(){
+  var dnxLineLastT = 0;
+  function dnxLineLoop(ts){
     dnxLineRAF = 0;
-    try{ dnxLineStep(); }catch(e){}
+    var now = ts || performance.now();
+    if(now - dnxLineLastT >= 40){
+      dnxLineLastT = now;
+      try{ dnxLineStep(); }catch(e){}
+    }
     if(dnxLineOvCfg) dnxLineRAF = requestAnimationFrame(dnxLineLoop);
   }
   function dnxLineStep(){
@@ -18458,7 +18545,8 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
           var db = document.getElementById("openwebrx-smeter-db");
           var dbt = db ? String(db.textContent).replace(/\s+/g, " ").trim() : "-";
           var ltxt = (mode === "sweep") ? "Linie Lauflicht" : (mode === "full" ? "Palette statisch" : ("Linie " + Math.round(lvl2 * 100) + "%"));
-          el.textContent = "S-Meter " + smeterFound + "/" + smeterDone + " | " + ltxt + " | " + dbt;
+          var ntxt = "S-Meter " + smeterFound + "/" + smeterDone + " | " + ltxt + " | " + dbt;
+          if(el.textContent !== ntxt) el.textContent = ntxt;
         }
       }
     }
@@ -18552,9 +18640,10 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
     if(dnxLineOvCfg && dnxLineOvCfg.vgMode) return;
     var names = [], bl = smeterBarsCache || [];
     for(var i2 = 0; i2 < bl.length && i2 < 3; i2++){ names.push(bl[i2].id || bl[i2].tagName); }
-    el.textContent = "S-Meter: " + smeterFound + " gefunden, " + smeterDone + " gefaerbt" + (names.length ? " [" + names.join(", ") + "]" : "");
+    var ntxt = "S-Meter: " + smeterFound + " gefunden, " + smeterDone + " gefaerbt" + (names.length ? " [" + names.join(", ") + "]" : "");
+    if(el.textContent !== ntxt) el.textContent = ntxt;
   }
-  var smeterObs = null, smeterApplying = false, smeterEl = null, smeterPassT = 0, smeterPasses = 0, smeterVCache = null;
+  var smeterObs = null, smeterApplying = false, smeterEl = null, smeterPassT = 0, smeterPasses = 0, smeterVCache = null, smeterObsPend = false;
   var smeterEls = [];
   function attachSmeterObserver(){
     var bars = smeterBars();
@@ -18566,17 +18655,39 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
     if(same) return;
     smeterEls = bars.slice(0);
     if(smeterObs){ smeterObs.disconnect(); }
-    smeterObs = new MutationObserver(function(){
-      if(document.hidden) return;
-      var now = Date.now();
-      if(now - smeterPassT > 1000){ smeterPassT = now; smeterPasses = 0; }
-      if(++smeterPasses > 150) return;
-      smeterTheme();
+    smeterObs = new MutationObserver(function(muts){
+      if(document.hidden || smeterApplying || smeterObsPend) return;
+      /* Bei normalen Pegelaenderungen (nur transform/width ohne Verlust der Hintergrundfarbe) nicht neu themen */
+      smeterObsPend = true;
+      requestAnimationFrame(function(){
+        smeterObsPend = false;
+        if(document.hidden || smeterApplying) return;
+        var need = false;
+        for(var j = 0; j < smeterEls.length; j++){
+          var b = smeterEls[j];
+          if(b && b.dataset.dnxSm === "1" && b.classList && b.classList.contains("openwebrx-smeter-bar")){
+            if(!b.style.getPropertyValue("background-image")){ need = true; break; }
+          }
+        }
+        if(!need) return;
+        var now = Date.now();
+        if(now - smeterPassT > 1000){ smeterPassT = now; smeterPasses = 0; }
+        if(++smeterPasses > 20) return;
+        smeterApplying = true;
+        try{ smeterTheme(); } finally {
+          if(smeterObs && smeterObs.takeRecords) smeterObs.takeRecords();
+          smeterApplying = false;
+        }
+      });
     });
     for(var k = 0; k < smeterEls.length; k++){
       smeterObs.observe(smeterEls[k], { attributes: true, attributeFilter: ["style"] });
     }
-    smeterTheme();
+    smeterApplying = true;
+    try{ smeterTheme(); } finally {
+      if(smeterObs && smeterObs.takeRecords) smeterObs.takeRecords();
+      smeterApplying = false;
+    }
   }
   function dnxRcvHost(){
     var overlay = document.getElementById("dnx-receiver-overlay");
@@ -20326,19 +20437,21 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
       }
     }catch(eOv){}
 
-    e.style.display = "block";
-    e.style.left = Math.round(r.left) + "px";
-    e.style.top = Math.round(r.top) + "px";
-    e.style.width = w + "px";
-    e.style.height = h + "px";
-    e.style.opacity = "1";
-    e.setAttribute("data-deck", String(d));
-    e.setAttribute("data-min", fmtDbTick(dmin));
-    e.setAttribute("data-max", fmtDbTick(dmax));
-
-    var sig = w + "|" + h + "|" + d + "|" + dmin.toFixed(2) + "|" + dmax.toFixed(2) + "|" + Math.round(f0) + "|" + Math.round(f1) + "|" + axisX;
-    if(!force && sig === _rasLastSig && e.width === w && e.height === h){ return; }
+    var rl = Math.round(r.left) + "px", rt = Math.round(r.top) + "px";
+    var ws = w + "px", hs = h + "px";
+    var dStr = String(d), minStr = fmtDbTick(dmin), maxStr = fmtDbTick(dmax);
+    var sig = rl + "|" + rt + "|" + w + "|" + h + "|" + dStr + "|" + dmin.toFixed(2) + "|" + dmax.toFixed(2) + "|" + Math.round(f0) + "|" + Math.round(f1) + "|" + axisX;
+    if(!force && sig === _rasLastSig && e.width === w && e.height === h && e.style.display === "block"){ return; }
     _rasLastSig = sig;
+    if(e.style.display !== "block") e.style.display = "block";
+    if(e.style.left !== rl) e.style.left = rl;
+    if(e.style.top !== rt) e.style.top = rt;
+    if(e.style.width !== ws) e.style.width = ws;
+    if(e.style.height !== hs) e.style.height = hs;
+    if(e.style.opacity !== "1") e.style.opacity = "1";
+    if(e.getAttribute("data-deck") !== dStr) e.setAttribute("data-deck", dStr);
+    if(e.getAttribute("data-min") !== minStr) e.setAttribute("data-min", minStr);
+    if(e.getAttribute("data-max") !== maxStr) e.setAttribute("data-max", maxStr);
     if(e.width !== w){ e.width = w; }
     if(e.height !== h){ e.height = h; }
 
@@ -20467,13 +20580,12 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
        die Zeile Weiss und wirkt "farblos" (genau der Nutzerbefund). Also die
        Roheinstellung selbst durch den Haken schicken: der setter faerbt sie auf
        die gewaehlte Palette um. */
+    window.__dnxSpekCfgVer = (window.__dnxSpekCfgVer || 0) + 1;
+    if(window.spectrum){ window.spectrum.__dnxDirty = true; window.spectrum.__dnxSkala = null; }
     try{
       if(specCtx){ specCtx.fillStyle = SPEC_FFT_ROH; }
       else if(specCtx && specCtx.__dnxFillRoh){ specCtx.fillStyle = specCtx.__dnxFillRoh; }
     }catch(e){}
-    try{
-      if(window.spectrum && typeof window.spectrum.draw === "function"){ window.spectrum.draw(); }
-    }catch(eZ){}
 
     if(ST.hoehe > 0){
       try{
@@ -20993,11 +21105,13 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
       var r2 = c2 ? c2.getBoundingClientRect() : null;
       if(r2 && r2.height > 12){ w = r2.width; h = r2.height; x = r2.left; y = r2.top; }
     }
-    if(!w || !h){ b.style.display = "none"; return; }
-    b.style.display = "block";
+    if(!w || !h){ if(b.style.display !== "none") b.style.display = "none"; return; }
+    if(b.style.display !== "block") b.style.display = "block";
     var bw = b.offsetWidth || 96;
-    b.style.left = Math.round(Math.max(4, x + w - bw - 8)) + "px";
-    b.style.top = Math.round(Math.max(4, y + Math.max(2, (h - 22) / 2))) + "px";
+    var kl = Math.round(Math.max(4, x + w - bw - 8)) + "px";
+    var kt = Math.round(Math.max(4, y + Math.max(2, (h - 22) / 2))) + "px";
+    if(b.style.left !== kl) b.style.left = kl;
+    if(b.style.top !== kt) b.style.top = kt;
   }
 
   function knopf(){
@@ -21017,14 +21131,25 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
       document.body.appendChild(b);
     }
     knopfPlatz();
-    anwenden();
   }
 
+  var _lastSpecAnw = "";
   function start(){
     css();
     knopf();
     anwenden();
-    setInterval(function(){ try{ abgleich(); knopf(); anwenden(); }catch(e){} }, 900);
+    setInterval(function(){
+      if(document.hidden) return;
+      try{
+        abgleich();
+        knopf();
+        var sig = JSON.stringify(ST) + "|" + (window.spectrum && window.spectrum.draw && window.spectrum.draw.__dnxSpek === 1 ? 1 : 0);
+        if(sig !== _lastSpecAnw){
+          _lastSpecAnw = sig;
+          anwenden();
+        }
+      }catch(e){}
+    }, 1200);
     window.addEventListener("resize", function(){ try{ knopfPlatz(); barPlatz(); }catch(e){} });
     window.addEventListener("scroll", function(){ try{ knopfPlatz(); }catch(e){} }, true);
   }
@@ -22201,12 +22326,12 @@ window.DNXScannerManager={open, quelle:()=>LUPE.wf, ordnung:()=>FM_VORN,
   "use strict";
   if(window.__dnxVersWache){ return; }
   window.__dnxVersWache = true;
-  var FASSUNG = "v6.11";
+  var FASSUNG = "v6.13";
   var STAND = "/static/plugins/receiver/dnx_stand.txt";
   var INIT = "/static/plugins/receiver/init.js";
   /* Groesse, die dieser Code im Browser wirklich hat. Damit faellt jede neue
      Fassung auf, auch wenn sich die Versionsnummer nicht aendert. */
-  var GROESSE = String(1018999);      /* echte Groesse dieser Datei */
+  var GROESSE = String(1025270);      /* echte Groesse dieser Datei */
   var SCHLUESSEL = "dnx.styler.laedt.";
   var MAX = 3;
 

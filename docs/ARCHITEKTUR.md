@@ -14,7 +14,7 @@ Ergänzende Detailreferenz zu [`README.md`](../README.md).
 | `dnx_styler_theme` | Receiver-Darstellung | Aktives Preset/Theme, Farben (`bg`, `panel`, `accent`, `btn`, `text`, `btntext`), `radius`, `glow`, `fx`, `sound`, `hover`, `pitch`, `rh`, `stan`, `stf`, `staus`, `stx`, `sty`, `mt*` |
 | `dnx_styler_palettes` | Paletten-Creator | Liste selbst erstellter 3-Stopp-Verläufe (`dnxPalNeu`) |
 | `dnx_styler_pillen_fx` | Effekte | Gewählte Mode-Pillen-Animation (`15` Varianten von `keiner` bis `blitz`) |
-| `dnx_styler_tools` | Werkzeuge an / aus | Zustand der `26` `TOOL_DEFS`-Schalter (`t_*`) |
+| `dnx_styler_tools` | Werkzeuge an / aus | Zustand der `TOOL_DEFS`-Werkzeugschalter (`t_*`, inkl. `t_wfglaettung`) |
 | `dnx.spectrum.darstellung.v2` | Spektrum & Zahnrad (`⚙`) | `pal`, `hg`, `hoehe`, `hell`, `kont`, `saett`, `hue`, `weich`, `deck`, `raster`, `rasterDeck`, `skala` (`pegel` / `auto`) |
 | `dnx.farben.v1` | Farben & Linien | Synchronisierter Satz für Wasserfall (`wf`), 3D-Palette (`cmap3d`), 3D-Hintergrund (`bg3d`), Linienfarbe (`linieFarbe`) & Liniendicke (`linieDicke`) |
 | `dnx_styler_top_h` | Obere rote Ziehleiste | Pixelhöhe von `.webrx-top-container` (`96–600 px`, CSS-Var `--dnx-top-h`) |
@@ -30,11 +30,11 @@ Ergänzende Detailreferenz zu [`README.md`](../README.md).
 
 ---
 
-## 2. Alle `26` `TOOL_DEFS`-Schalter & Live-Masterleiste (`#dnx-master-tool-row`)
+## 2. `TOOL_DEFS`-Werkzeugschalter (`t_*`) & Live-Masterleiste (`#dnx-master-tool-row`)
 
 * **Audio & Dekoder:** `t_af` (Audio-Filter), `t_eq` (10-Band Grafik-EQ), `t_sounds` (FX/Pip-Töne), `t_dmr` (DMR-Slots), `t_oslot` (Original-Slots)
 * **Anzeigen & Achsen:** `t_wf` (Wasserfall), `t_fft` (Spektrum), `t_ansicht` (3D-Ansicht), `t_tool3d` (3D-Tool-Popup), `t_pegel` (Pegel-Leiste), `t_zeitachse` (Zeitachse), `t_smeter` (S-Meter Nadel), `t_gelb` (Gelb Hover), `t_gruen` (Grün Tuning), `t_status` (DNX Status)
-* **Funkgeräte & Zusatzmodule:** `t_funkgeraet1`, `t_funkgeraet2`, `t_funkgeraet3`, `t_dx` (DX-Cluster), `t_sonne` (Solar/HF), `t_wetter` (Wetter 2D/3D), `t_adsb` (ADS-B), `t_ais` (AIS), `t_iss` (ISS), `t_magnet` (Magnetfeld), `t_favoriten` (Scanner/Favoriten), `t_novnc` (noVNC/Foto), `t_remote` (Remote VIEW)
+* **Funkgeräte & Zusatzmodule:** `t_funkgeraet1`, `t_funkgeraet2`, `t_funkgeraet3`, `t_dx` (DX-Cluster), `t_sonne` (Solar/HF), `t_wetter` (Wetter 2D/3D), `t_adsb` (ADS-B), `t_ais` (AIS), `t_iss` (ISS), `t_magnet` (Magnetfeld), `t_favoriten` (Scanner/Favoriten), `t_novnc` (noVNC/Foto), `t_remote` (Remote VIEW), `t_wfglaettung` (WF-Glättung)
 
 ---
 

@@ -1,4 +1,4 @@
-# DNX Styler (`v3.16` / UI `v6.28`)
+# DNX Styler (`v3.17` / UI `v6.28`)
 
 <!-- DNX-DISCLAIMER-START -->
 > **Wichtiger Hinweis / Vollständige Distanzierung (Hobby-Mod-Mode)**
@@ -18,7 +18,7 @@
 > - **No Public Support & No Warranty:** There is **no public support**, no warranty, and no liability. Use entirely at your own risk (always create backups and verify on a test system first).
 > - **Pure Hobby Project — Free to Use, Modify & Redistribute:** Created solely out of personal hobby interest in the radio/SDR hobby; freely available to use, share, modify, and improve.
 
-> **Fassungshinweis:** Das Release-Paket trägt die Tag-Version `v3.16`, die UI-Titelleiste zeigt **`DNX Styler v6.28`** (inkl. Spektrum-/Wasserfall-Entkopplung nach SDR#-Art, kalibriertem dBFS-Spektrum-Raster `#dnx-spek-raster`, `v6.26`-Funktionsblöcken, `v6.27`-3D-Hintergrundschutz und `v6.28`-3D-Sync), und `dnx_stand.txt` dokumentiert den Prüfsummenstempel `v6.11 1018999`. Siehe auch das eigenständige Begleitprojekt [`DNX-Pegel`](https://github.com/KanotixPinguin/DNX-Pegel).
+> **Fassungshinweis:** Das Release-Paket trägt die Tag-Version `v3.17`, die UI-Titelleiste zeigt **`DNX Styler v6.28`** (inkl. überarbeiteter Standard-Wasserfallpalette `2511` mit ruhigem Nachtblau am Rauschboden, optionalem `WF-Glättung`-Werkzeugschalter `t_wfglaettung`, Spektrum-/Wasserfall-Entkopplung nach SDR#-Art, kalibriertem dBFS-Spektrum-Raster `#dnx-spek-raster`, `v6.26`-Funktionsblöcken, `v6.27`-3D-Hintergrundschutz und `v6.28`-3D-Sync), inkl. flüssigem 60-FPS-Rendering ohne Main-Thread-Ruckler (1/4-Auflösungs-Glow ohne Vollbild-Downsampling, Dirty-Check im Spektrum, entprellter Seitenleisten- & S-Meter-/Werkzeugreihen-Abgleich), und `dnx_stand.txt` dokumentiert den Prüfsummenstempel `v6.13 1025270`. Siehe auch die Begleitprojekte [`DNX-Pegel`](https://github.com/KanotixPinguin/DNX-Pegel) und [`DNX-WF-Glaettung`](https://github.com/KanotixPinguin/DNX-WF-Glaettung).
 
 ---
 
@@ -159,7 +159,7 @@ Das Styler-Hauptfenster (`#dnx-styler-ui`, standardmäßig über Button `DNX Sty
 | **`#dnx-blk-wasserfall`** | `Wasserfall & 3D` | `Wasserfall an/aus`, `Wasserfall-Palette`, `Wasserfall (2D)` (`99`), `3D-Wasserfall` (`29`+) & `3D-Hintergrund` (`107`) mit Live-Vorschaustreifen. |
 | **`#dnx-blk-spektrum`** | `Spektrum` | `Spektrum an/aus`, `Spektrum-Farbe`, `Spektrum-Palette` (`108`), `Spektrum-Hintergrund` (`107`), `Spektrum-Skala` (`Pegel (Range & Offset)` / `Auto`), kalibriertes `Spektrum-Raster` (`An` / `Aus`, Vorgabe `75 %`), `Raster-Deckkraft` (`5–100 %`) & `Alle Farben und Linien zurücksetzen`. |
 | **`#dnx-blk-pegel`** | `Pegel (Wasserfall)` | `Contrast (Wasserfall)` (`0–100`), `Range (Spektrum dB-Spanne)` (`6–160 dB`), `Offset (Spektrum-Hebung)` (`-40..+140 dB`), `Automatik (Spektrum-Fenster selbst messen)`, `Spektrum-Skala` (`Pegel (Range & Offset)` / `Auto`), **`Für dieses Profil merken`** (`__dnxPegelMerken()`), **`Für alle übernehmen`** (`dnxStdSenden()`) + integrierter **`RF-GAIN`**-Drehknopf (`AGC`/`manuell`). |
-| **`#dnx-blk-tools`** | `Werkzeuge an / aus` | `26` `TOOL_DEFS`-Einzelschalter (`t_af`, `t_dx`, `t_sonne`, `t_funkgeraet1/2/3`, `t_wf`, `t_fft`, `t_ansicht`, `t_gelb`, `t_gruen`, `t_status`, `t_smeter`, `t_tool3d`, `t_novnc`, `t_remote`, `t_zeitachse`, `t_adsb`, `t_ais`, `t_sounds`, `t_oslot`, `t_dmr`, `t_pegel`, `t_eq`, `t_wetter`, `t_favoriten`, `t_magnet`, `t_iss`) + **`L` / `R`-Seitenposition** für `Zeitachse`, `Pegel` & `DMR-Slots`. |
+| **`#dnx-blk-tools`** | `Werkzeuge an / aus` | Einzelschalter (`t_af`, `t_dx`, `t_sonne`, `t_funkgeraet1/2/3`, `t_wf`, `t_fft`, `t_ansicht`, `t_gelb`, `t_gruen`, `t_status`, `t_smeter`, `t_tool3d`, `t_novnc`, `t_remote`, `t_zeitachse`, `t_adsb`, `t_ais`, `t_sounds`, `t_oslot`, `t_dmr`, `t_pegel`, `t_eq`, `t_wetter`, `t_favoriten`, `t_magnet`, `t_iss`, `t_wfglaettung`) + **`L` / `R`-Seitenposition** für `Zeitachse`, `Pegel` & `DMR-Slots`. |
 | **`#dnx-blk-smeternadel`** | `S-Meter (Nadel)` | `4` Modelle (`neu` / `georg1` / `georg2` / `alan48`), `7` LCD-Farben (`orange`, `gelb`, `gruen`, `blau`, `tuerkis`, `rot`, `weiss`), Ein/Aus, `◀ ▲ Mitte ▼ ▶`-Positionierung (`DNX_SM_SX`/`SY`) & **`S-Meter für alle übernehmen`** (`#dnx-sm-std`). |
 | **`#dnx-blk-zeit`** | `Zeitachse` | Zeitmarken-Abstand (`aus`, `5 min`, `15 min`, `30 min`, `1 h`, `2 h`, `4 h`, `8 h`, `12 h`), Seitenauswahl (`L` / `R`), Schriftgröße & Transparenz. |
 | **`#dnx-blk-teilen`** | `Teilen & gemeinsame Einstellungen` | Lokal: `Speichern`, `Export` (`.json`), `Import`, `Reset`, `Schliessen`, `Eigene Einstellung zuruecksetzen`; Server (`:8098`): `Auf Server speichern`, `Liste laden`, `Ausgewaehlten Eintrag loeschen` & (nur Admin) **`Standard für alle`** (`#dnx-share-std`). |
@@ -210,8 +210,8 @@ Der schlanke Python-Standardbibliothek-Dienst `styler_share.py` betreibt `~/.dnx
 
 | Datei | Ziel / Target | Zweck / Purpose |
 |---|---|---|
-| `dnx_styler.js` | `…/htdocs/plugins/receiver/dnx_styler.js` | Kompletter DNX Styler (`v6.28` / Stempel `v6.11`, `1.018.999 B`) |
-| `dnx_stand.txt` | `…/htdocs/plugins/receiver/dnx_stand.txt` | Versions-/Größenstempel (`v6.11 1018999`) |
+| `dnx_styler.js` | `…/htdocs/plugins/receiver/dnx_styler.js` | Kompletter DNX Styler (`v6.28` / Stempel `v6.13`, `1.025.270 B`) |
+| `dnx_stand.txt` | `…/htdocs/plugins/receiver/dnx_stand.txt` | Versions-/Größenstempel (`v6.13 1025270`) |
 | `styler_share.py` | Host-Dienst (optional, Port `8098`) | SQLite Teilen- & SSE-Globalstandard-Dienst (`v4`, inkl. `range`/`offset`-Normalisierung & Spektrum-Skala/Raster) |
 | `docs/ARCHITEKTUR.md` | — | Vollständige Schlüssel-, Endpunkt- & Bridge-Referenz |
 | `docs/` | — | 14 bereinigte Funktionsscreenshots (`1600×980`) + 2 Architektur-/Datenflussdiagramme (`1800×1120`) |
@@ -233,4 +233,4 @@ Vorher Backup anlegen (`cp dnx_styler.js dnx_styler.js.bak-<datum>`). Danach Bro
 
 ## 7. Weiterführende technische Referenz
 
-Die vollständige Tabelle aller `localStorage`-Keys, aller `26` `TOOL_DEFS`-Schalter, aller `32` `DNXReceiverRights`-Berechtigungen sowie der kompletten `styler_share.py`-Datenstrukturen liegt unter [`docs/ARCHITEKTUR.md`](docs/ARCHITEKTUR.md).
+Die vollständige Tabelle aller `localStorage`-Keys, aller `TOOL_DEFS`-Werkzeugschalter (`t_*`), aller `32` `DNXReceiverRights`-Berechtigungen sowie der kompletten `styler_share.py`-Datenstrukturen liegt unter [`docs/ARCHITEKTUR.md`](docs/ARCHITEKTUR.md).
